@@ -1,0 +1,28 @@
+name: Mirror GitCode feishu-remote-mcp-skill to GitHub
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  mirror-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Git config
+        run: |
+          git config --global user.name "wang_tf"
+          git config --global user.email "wang_tf@petalmail.com"
+
+      - name: Clone GitCode repo (mirror)
+        run: |
+          if [ -n "${{ secrets.GITCODE_TOKEN }}" ]; then
+            GITCODE_REPO_URL=$(echo ${{ secrets.GITCODE_REPO_URL }} | sed "s|https://|https://${{ secrets.GITCODE_TOKEN }}@|")
+          else
+            GITCODE_REPO_URL=${{ secrets.GITCODE_REPO_URL }}
+          fi
+          git clone --mirror $GITCODE_REPO_URL feishu-remote-mcp-skill.git
+
+      - name: Push to GitHub (使用个人令牌)
+        run: |
+          cd feishu-remote-mcp-skill.git
+          git push --mirror https://wang-tf:${{ secrets.GH_PAT }}@github.com/wang-tf/feishu-remote-mcp-skill.git
