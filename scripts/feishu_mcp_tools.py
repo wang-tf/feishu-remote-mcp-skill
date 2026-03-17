@@ -10,15 +10,25 @@ class FeishuMCPTools:
             "Content-Type": "application/json"
         }
         
-        # 读取配置文件
-        config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json")
-        if os.path.exists(config_file):
-            with open(config_file, "r", encoding="utf-8") as f:
-                config_data = json.load(f)
-                self.app_id = config_data.get("app_id")
-                self.app_secret = config_data.get("app_secret")
-        else:
+        # 优先从环境变量读取
+        self.app_id = os.environ.get("FEISHU_APP_ID")
+        self.app_secret = os.environ.get("FEISHU_APP_SECRET")
+        
+        # 如果环境变量不存在，从配置文件读取
+        if not self.app_id or not self.app_secret:
+            config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json")
+            if os.path.exists(config_file):
+                with open(config_file, "r", encoding="utf-8") as f:
+                    config_data = json.load(f)
+                    if not self.app_id:
+                        self.app_id = config_data.get("app_id")
+                    if not self.app_secret:
+                        self.app_secret = config_data.get("app_secret")
+        
+        # 处理环境变量占位符
+        if self.app_id == "$FEISHU_APP_ID":
             self.app_id = None
+        if self.app_secret == "$FEISHU_APP_SECRET":
             self.app_secret = None
         
         # 添加认证凭证
