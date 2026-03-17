@@ -3,7 +3,7 @@ from scripts.feishu_mcp_tools import FeishuMCPTools
 def get_skill():
     return {
         "name": "feishu-remote-mcp",
-        "version": "1.0.0",
+        "version": "1.1.1",
         "description": "调用飞书远程 MCP 服务的 skill",
         "configuration": {
             "accessToken": {

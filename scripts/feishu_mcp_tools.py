@@ -44,8 +44,14 @@ class FeishuMCPTools:
                 self.headers["X-Lark-MCP-TAT"] = access_token
         
         # 添加允许的工具列表
-        if config.get("allowedTools"):
-            self.headers["X-Lark-MCP-Allowed-Tools"] = ",".join(config.get("allowedTools"))
+        allowed_tools = config.get("allowedTools")
+        if not allowed_tools:
+            # 默认添加所有工具
+            allowed_tools = [
+                "search-user", "get-user", "fetch-file",
+                "search-doc", "create-doc", "fetch-doc", "update-doc", "list-docs", "get-comments", "add-comments"
+            ]
+        self.headers["X-Lark-MCP-Allowed-Tools"] = ",".join(allowed_tools)
     
     def _get_tenant_access_token(self):
         """获取租户访问令牌"""
