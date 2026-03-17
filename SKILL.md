@@ -1,6 +1,6 @@
 ---
 name: Feishu Remote MCP
-version: 1.1.1
+version: 1.2.0
 description: 调用飞书远程 MCP 服务，实现与飞书云文档和用户管理的交互
 dependencies:
   - requests

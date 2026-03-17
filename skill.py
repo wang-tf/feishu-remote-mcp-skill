@@ -3,7 +3,7 @@ from scripts.feishu_mcp_tools import FeishuMCPTools
 def get_skill():
     return {
         "name": "feishu-remote-mcp",
-        "version": "1.1.1",
+        "version": "1.2.0",
         "description": "调用飞书远程 MCP 服务的 skill",
         "configuration": {
             "accessToken": {
@@ -194,6 +194,52 @@ def get_skill():
                 },
                 "handler": lambda params, config: FeishuMCPTools(config).add_comments(
                     params["documentToken"], params["content"]
+                )
+            },
+            {
+                "name": "updateFeishuDocPermission",
+                "description": "更新云文档权限设置",
+                "parameters": {
+                    "documentToken": {
+                        "type": "string",
+                        "required": True,
+                        "description": "文档 token"
+                    },
+                    "permissionSettings": {
+                        "type": "object",
+                        "required": True,
+                        "description": "权限设置对象",
+                        "properties": {
+                            "external_access_entity": {
+                                "type": "string",
+                                "description": "是否允许内容被分享到组织外",
+                                "enum": ["open", "closed", "allow_share_partner_tenant"]
+                            },
+                            "security_entity": {
+                                "type": "string",
+                                "description": "谁可以创建副本、打印、下载",
+                                "enum": ["anyone_can_view", "anyone_can_edit", "only_full_access"]
+                            },
+                            "comment_entity": {
+                                "type": "string",
+                                "description": "谁可以评论",
+                                "enum": ["anyone_can_view", "anyone_can_edit"]
+                            },
+                            "manage_collaborator_entity": {
+                                "type": "string",
+                                "description": "谁可以查看、添加、移除协作者",
+                                "enum": ["collaborator_can_view", "collaborator_can_edit", "collaborator_full_access"]
+                            },
+                            "copy_entity": {
+                                "type": "string",
+                                "description": "谁可以复制内容",
+                                "enum": ["anyone_can_view", "anyone_can_edit", "only_full_access"]
+                            }
+                        }
+                    }
+                },
+                "handler": lambda params, config: FeishuMCPTools(config).update_doc_permission(
+                    params["documentToken"], params["permissionSettings"]
                 )
             }
         ]

@@ -157,3 +157,69 @@ class FeishuMCPTools:
             "document_token": document_token,
             "content": content
         })
+    
+    def update_doc_permission(self, document_token, permission_settings):
+        """更新云文档权限设置"""
+        url = f"https://open.feishu.cn/open-apis/drive/v2/permissions/{document_token}/public"
+        headers = {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": self.headers.get("X-Lark-MCP-TAT") or self.headers.get("X-Lark-MCP-UAT")
+        }
+        
+        # 确保 authorization 格式正确
+        if headers["Authorization"] and not headers["Authorization"].startswith("Bearer "):
+            headers["Authorization"] = f"Bearer {headers["Authorization"]}"
+        
+        payload = permission_settings
+        
+        try:
+            response = requests.patch(url, headers=headers, json=payload, params={"type": "docx"})
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            raise Exception(f"更新文档权限失败: {e}")
+    
+    def create_doc(self, title, content, parent_node_token=None):
+        arguments = {
+            "title": title,
+            "content": content
+        }
+        if parent_node_token:
+            arguments["parent_node_token"] = parent_node_token
+        
+        # 创建文档
+        result = self.call_tool("create-doc", arguments)
+        
+        # 获取文档 token
+        document_token = None
+        if isinstance(result, dict):
+            # 解析返回结果，提取文档 token
+            if "content" in result:
+                for item in result["content"]:
+                    if isinstance(item, dict) and "text" in item:
+                        import json
+                        try:
+                            text_data = json.loads(item["text"])
+                            if "data" in text_data and "document_token" in text_data["data"]:
+                                document_token = text_data["data"]["document_token"]
+                                break
+                        except:
+                            pass
+        
+        # 设置文档权限为“组织内获得链接的人可编辑”
+        if document_token:
+            permission_settings = {
+                "external_access_entity": "closed",  # 不允许分享到组织外
+                "security_entity": "anyone_can_view",  # 拥有可阅读权限的用户可以复制、打印、下载
+                "comment_entity": "anyone_can_view",  # 拥有可阅读权限的用户可以评论
+                "manage_collaborator_entity": "collaborator_full_access",  # 只有拥有可管理权限的用户可以管理协作者
+                "copy_entity": "anyone_can_view"  # 拥有可阅读权限的用户可以复制内容
+            }
+            # 注意：具体的权限设置可能需要根据飞书 API 的要求进行调整
+            # 这里的设置是一个示例，实际使用时可能需要根据具体需求进行修改
+            try:
+                self.update_doc_permission(document_token, permission_settings)
+            except Exception as e:
+                print(f"设置文档权限失败: {e}")
+        
+        return result

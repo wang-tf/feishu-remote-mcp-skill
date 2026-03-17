@@ -143,6 +143,20 @@ feishu-remote-mcp-skill/
   })
   ```
 
+- **更新文档权限**：
+  ```python
+  result = skill.call("updateFeishuDocPermission", {
+      "documentToken": "doc123",
+      "permissionSettings": {
+          "external_access_entity": "closed",
+          "security_entity": "anyone_can_view",
+          "comment_entity": "anyone_can_view",
+          "manage_collaborator_entity": "collaborator_full_access",
+          "copy_entity": "anyone_can_view"
+      }
+  })
+  ```
+
 ## 权限要求
 
 请确保您的飞书应用拥有使用所需工具的必要权限：
