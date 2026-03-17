@@ -236,10 +236,17 @@ def get_skill():
                                 "enum": ["anyone_can_view", "anyone_can_edit", "only_full_access"]
                             }
                         }
+                    },
+                    "fileType": {
+                        "type": "string",
+                        "required": False,
+                        "default": "docx",
+                        "description": "文档类型",
+                        "enum": ["doc", "docx", "sheet", "file", "wiki", "bitable"]
                     }
                 },
                 "handler": lambda params, config: FeishuMCPTools(config).update_doc_permission(
-                    params["documentToken"], params["permissionSettings"]
+                    params["documentToken"], params.get("permissionSettings"), params.get("fileType", "docx")
                 )
             }
         ]

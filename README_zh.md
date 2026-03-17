@@ -174,6 +174,7 @@ feishu-remote-mcp-skill/
 - `list-docs`：`wiki:wiki:readonly`
 - `get-comments`：`docs:document.comment:read`、`contact:contact.base:readonly`
 - `add-comments`：`docs:document.comment:create`
+- `update-doc-permission`：`drive:document`（或其他相关权限）
 
 ## 错误处理
 
