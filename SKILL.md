@@ -38,6 +38,7 @@ This skill allows you to call Feishu's remote MCP (Model Context Protocol) servi
 - `listFeishuDocs`: List cloud documents under a specific knowledge space node
 - `getFeishuDocComments`: View comments in a cloud document
 - `addFeishuDocComments`: Add comments to a cloud document
+- `updateFeishuDocPermission`: Update cloud document permission settings
 
 ## Usage Examples
 
@@ -60,6 +61,26 @@ result = skill.call("createFeishuDoc", {
 ```python
 result = skill.call("fetchFeishuDoc", {
     "documentLink": "https://bytedance.larkoffice.com/docx/xxxxxx"
+})
+```
+
+### Update document permission (with default settings)
+```python
+result = skill.call("updateFeishuDocPermission", {
+    "documentToken": "doc123"
+})
+```
+
+### Update document permission (with custom settings)
+```python
+result = skill.call("updateFeishuDocPermission", {
+    "documentToken": "doc123",
+    "permissionSettings": {
+        "external_access_entity": "closed",
+        "link_share_entity": "tenant_editable",
+        "comment_entity": "anyone_can_view"
+    },
+    "fileType": "docx"
 })
 ```
 
@@ -86,6 +107,7 @@ Make sure your Feishu application has the necessary permissions based on the too
 - `list-docs`: `wiki:wiki:readonly`
 - `get-comments`: `docs:document.comment:read`, `contact:contact.base:readonly`
 - `add-comments`: `docs:document.comment:create`
+- `update-doc-permission`: `drive:document` (or other related permissions)
 
 ## Error Handling
 
@@ -101,3 +123,4 @@ The skill handles errors according to the Feishu MCP error response format:
 - `fetch-doc` does not support reading content from spreadsheets, OKRs, tasks, group cards, schedules, Feishu projects, etc.
 - `get-comments` only supports emoji, text, and document type comments; does not support getting images in comments
 - `add-comments` only supports adding full-text comments; does not support inline comments or uploading images to comments
+- `update-doc-permission` requires appropriate permissions to modify document settings; ensure the calling identity has manage permissions on the document
