@@ -1,4 +1,6 @@
 import requests
+import json
+import os
 
 class FeishuMCPTools:
     def __init__(self, config):
@@ -7,14 +9,55 @@ class FeishuMCPTools:
         self.headers = {
             "Content-Type": "application/json"
         }
-        # 添加认证凭证
-        if config.get("useUAT", False):
-            self.headers["X-Lark-MCP-UAT"] = config.get("accessToken")
+        
+        # 读取配置文件
+        config_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "config.json")
+        if os.path.exists(config_file):
+            with open(config_file, "r", encoding="utf-8") as f:
+                config_data = json.load(f)
+                self.app_id = config_data.get("app_id")
+                self.app_secret = config_data.get("app_secret")
         else:
-            self.headers["X-Lark-MCP-TAT"] = config.get("accessToken")
+            self.app_id = None
+            self.app_secret = None
+        
+        # 添加认证凭证
+        access_token = config.get("accessToken")
+        if not access_token and self.app_id and self.app_secret:
+            # 如果没有提供 accessToken，尝试使用 app_id 和 app_secret 获取
+            access_token = self._get_tenant_access_token()
+        
+        if access_token:
+            if config.get("useUAT", False):
+                self.headers["X-Lark-MCP-UAT"] = access_token
+            else:
+                self.headers["X-Lark-MCP-TAT"] = access_token
+        
         # 添加允许的工具列表
         if config.get("allowedTools"):
             self.headers["X-Lark-MCP-Allowed-Tools"] = ",".join(config.get("allowedTools"))
+    
+    def _get_tenant_access_token(self):
+        """获取租户访问令牌"""
+        if not self.app_id or not self.app_secret:
+            return None
+        
+        url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal/"
+        payload = {
+            "app_id": self.app_id,
+            "app_secret": self.app_secret
+        }
+        
+        try:
+            response = requests.post(url, json=payload)
+            response.raise_for_status()
+            result = response.json()
+            if result.get("code") == 0:
+                return result.get("tenant_access_token")
+            return None
+        except Exception as e:
+            print(f"获取租户访问令牌失败: {e}")
+            return None
     
     def _make_request(self, method, params=None, request_id=1):
         payload = {
