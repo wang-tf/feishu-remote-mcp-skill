@@ -123,16 +123,7 @@ class FeishuMCPTools:
     # 云文档工具
     def search_doc(self, keyword):
         return self.call_tool("search-doc", {"keyword": keyword})
-    
-    def create_doc(self, title, content, parent_node_token=None):
-        arguments = {
-            "title": title,
-            "content": content
-        }
-        if parent_node_token:
-            arguments["parent_node_token"] = parent_node_token
-        return self.call_tool("create-doc", arguments)
-    
+
     def fetch_doc(self, document_link):
         return self.call_tool("fetch-doc", {"document_link": document_link})
     
@@ -157,9 +148,19 @@ class FeishuMCPTools:
             "document_token": document_token,
             "content": content
         })
-    
-    def update_doc_permission(self, document_token, permission_settings):
+
+    def update_doc_permission(self, document_token, permission_settings=None, file_type='docx'):
         """更新云文档权限设置"""
+        if not permission_settings:
+            permission_settings = {
+                "external_access_entity": "closed",  # 不允许分享到组织外
+                "security_entity": "anyone_can_view",  # 拥有可阅读权限的用户可以复制、打印、下载
+                "comment_entity": "anyone_can_view",  # 拥有可阅读权限的用户可以评论
+                "manage_collaborator_entity": "collaborator_full_access",  # 只有拥有可管理权限的用户可以管理协作者
+                "link_share_entity": "tenant_editable",  # 组织内获得链接的人可编辑
+                "copy_entity": "anyone_can_view"  # 拥有可阅读权限的用户可以复制内容
+            }
+
         url = f"https://open.feishu.cn/open-apis/drive/v2/permissions/{document_token}/public"
         headers = {
             "Content-Type": "application/json; charset=utf-8",
@@ -168,28 +169,28 @@ class FeishuMCPTools:
         
         # 确保 authorization 格式正确
         if headers["Authorization"] and not headers["Authorization"].startswith("Bearer "):
-            headers["Authorization"] = f"Bearer {headers["Authorization"]}"
+            headers["Authorization"] = f'Bearer {headers["Authorization"]}'
         
         payload = permission_settings
         
         try:
-            response = requests.patch(url, headers=headers, json=payload, params={"type": "docx"})
+            response = requests.patch(url, headers=headers, json=payload, params={"type": file_type})
             response.raise_for_status()
             return response.json()
         except Exception as e:
             raise Exception(f"更新文档权限失败: {e}")
-    
-    def create_doc(self, title, content, parent_node_token=None):
+
+    def create_doc(self, title, content, parent_node_token=None, file_type='docx'):
         arguments = {
             "title": title,
             "content": content
         }
         if parent_node_token:
             arguments["parent_node_token"] = parent_node_token
-        
+
         # 创建文档
         result = self.call_tool("create-doc", arguments)
-        
+
         # 获取文档 token
         document_token = None
         if isinstance(result, dict):
@@ -205,7 +206,7 @@ class FeishuMCPTools:
                                 break
                         except:
                             pass
-        
+
         # 设置文档权限为“组织内获得链接的人可编辑”
         if document_token:
             permission_settings = {
@@ -213,13 +214,14 @@ class FeishuMCPTools:
                 "security_entity": "anyone_can_view",  # 拥有可阅读权限的用户可以复制、打印、下载
                 "comment_entity": "anyone_can_view",  # 拥有可阅读权限的用户可以评论
                 "manage_collaborator_entity": "collaborator_full_access",  # 只有拥有可管理权限的用户可以管理协作者
+                "link_share_entity": "tenant_editable",  # 组织内获得链接的人可编辑
                 "copy_entity": "anyone_can_view"  # 拥有可阅读权限的用户可以复制内容
             }
             # 注意：具体的权限设置可能需要根据飞书 API 的要求进行调整
             # 这里的设置是一个示例，实际使用时可能需要根据具体需求进行修改
             try:
-                self.update_doc_permission(document_token, permission_settings)
+                self.update_doc_permission(document_token, permission_settings, file_type=file_type)
             except Exception as e:
                 print(f"设置文档权限失败: {e}")
-        
+
         return result
