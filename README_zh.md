@@ -1,5 +1,7 @@
 # Feishu Remote MCP Skill
 
+[English Version](./README.md) | 中文版本
+
 该技能允许您调用飞书的远程 MCP（Model Context Protocol）服务，与飞书云文档和用户管理进行交互。它设计用于与 Claude 的自定义技能系统配合使用。
 
 ## 功能特点

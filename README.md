@@ -1,5 +1,7 @@
 # Feishu Remote MCP Skill
 
+[中文版本](./README_zh.md) | English Version
+
 This skill allows you to call Feishu's remote MCP (Model Context Protocol) services to interact with Feishu Cloud Documents and user management. It's designed to work with Claude's custom skills system.
 
 ## Features
